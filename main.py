@@ -113,9 +113,9 @@ def create_table(results, title):
     return table.table
 
 
-def vacancies_statistics(languages, platform, sj_token=None):
+def get_statistics_on_vacancies(languages, platform, sj_token=None):
     """Статистика по вакансиям и языкам на платформе"""
-    results = {}
+    statistics = {}
 
     for lang in languages:
         if sj_token:
@@ -131,12 +131,12 @@ def vacancies_statistics(languages, platform, sj_token=None):
 
         average_salary = int(sum(salaries) / len(salaries)) if salaries else 0
 
-        results[lang] = {
+        statistics[lang] = {
             "vacancies_found": count,
             "vacancies_processed": len(salaries),
             "average_salary": average_salary,
         }
-    return results
+    return statistics
 
 
 def main():
@@ -162,11 +162,11 @@ def main():
     sj_token = env.str("SECRET_KEY_SUPERJOB", "")
 
     try:
-        hh_msc = vacancies_statistics(languages=languages, platform="hh")
+        hh_msc = get_statistics_on_vacancies(languages=languages, platform="hh")
 
         sj_msc = {}
         if sj_token:
-            sj_msc = vacancies_statistics(
+            sj_msc = get_statistics_on_vacancies(
                 languages=languages, platform="sj", sj_token=sj_token
             )
         else:
