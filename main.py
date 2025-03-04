@@ -8,16 +8,16 @@ def get_a_paycheck_fork(vacancy, platform):
     if platform == "hh":
         salary_data = vacancy.get("salary")
         if not salary_data or salary_data.get("currency") != "RUR":
-            return None
+            return None, None
         salary_from = salary_data.get("from")
         salary_to = salary_data.get("to")
     elif platform == "sj":
         if vacancy["currency"] != "rub":
-            return None
+            return None, None
         salary_from = vacancy.get("payment_from")
         salary_to = vacancy.get("payment_to")
     else:
-        return None
+        return None, None
     return salary_from, salary_to
 
 
