@@ -161,21 +161,18 @@ def main():
     ]
     sj_token = env.str("SECRET_KEY_SUPERJOB", "")
 
-    try:
-        hh_msc = get_statistics_on_vacancies(languages=languages, platform="hh")
+    hh_msc = get_statistics_on_vacancies(languages=languages, platform="hh")
 
-        sj_msc = {}
-        if sj_token:
-            sj_msc = get_statistics_on_vacancies(
-                languages=languages, platform="sj", sj_token=sj_token
-            )
-        else:
-            print("Токен SuperJob не найден. Статистика по SJ пропущена.")
+    sj_msc = {}
+    if sj_token:
+        sj_msc = get_statistics_on_vacancies(
+            languages=languages, platform="sj", sj_token=sj_token
+        )
+    else:
+        print("Токен SuperJob не найден. Статистика по SJ пропущена.")
 
-        print(create_table(hh_msc, title="HeadHunter Moscow"))
-        print("\n" + create_table(sj_msc, title="SuperJob Moscow"))
-    except requests.exceptions.RequestException as error:
-        print(f"Ошибка при выполнении запроса: {error}")
+    print(create_table(hh_msc, title="HeadHunter Moscow"))
+    print("\n" + create_table(sj_msc, title="SuperJob Moscow"))
 
 
 if __name__ == "__main__":
