@@ -3,8 +3,8 @@ from environs import Env
 from terminaltables import AsciiTable
 
 
-def predict_rub_salary(vacancy, platform):
-    """Универсальная функция для расчета зарплаты"""
+def get_a_paycheck_fork(vacancy, platform):
+    """Считывает зарплатную вилку исходя из данных вакансии"""
     if platform == "hh":
         salary_data = vacancy.get("salary")
         if not salary_data or salary_data.get("currency") != "RUR":
@@ -18,7 +18,11 @@ def predict_rub_salary(vacancy, platform):
         salary_to = vacancy.get("payment_to")
     else:
         return None
+    return salary_from, salary_to
 
+
+def predict_rub_salary(salary_from, salary_to):
+    """Рассчитывает зарплату исходя из зарплатной вилки"""
     if salary_from and salary_to:
         return (salary_from + salary_to) // 2
     elif salary_from:
@@ -139,7 +143,8 @@ def get_statistics_on_vacancies(languages, platform, sj_token=None):
 
         salaries = []
         for vacancy in vacancies:
-            salary = predict_rub_salary(vacancy, platform)
+            salary_from, salary_to = get_a_paycheck_fork(vacancy, platform)
+            salary = predict_rub_salary(salary_from, salary_to)
             if salary:
                 salaries.append(salary)
 
