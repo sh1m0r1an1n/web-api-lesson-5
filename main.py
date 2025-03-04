@@ -34,11 +34,15 @@ def get_sj_vacancies(token, language):
     search_text = f'"{language}"' if language != "C" \
         else '!"C" NOT "C++" NOT "C#" NOT "Objective-C" NOT "1C"'
     headers = {"X-Api-App-Id": token}
+
+    programmer_and_developer_id = 48
+    moscow_id = 4
+    days = 30
     params = {
-        "period": 30,
-        "town": 4,
+        "period": days,
+        "town": moscow_id,
         "keyword": search_text,
-        "catalogues": 48,
+        "catalogues": programmer_and_developer_id,
         "count": 100,
         "page": 0,
     }
@@ -65,11 +69,15 @@ def get_hh_vacancies(language):
     url = "https://api.hh.ru/vacancies"
     search_text = f'"{language}"' if language != "C"\
         else '!"C" NOT "C++" NOT "C#" NOT "Objective-C" NOT "1C"'
+
+    programmer_and_developer_id = 96
+    moscow_id = 1
+    days = 30
     params = {
-        "professional_role": 96,
-        "area": 1,
+        "professional_role": programmer_and_developer_id,
+        "area": moscow_id,
         "currency": "RUR",
-        "period": 30,
+        "period": days,
         "text": search_text,
         "per_page": 100,
         "page": 0,
