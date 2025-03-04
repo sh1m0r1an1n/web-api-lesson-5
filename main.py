@@ -104,7 +104,7 @@ def get_hh_vacancies(language):
     return response.get("found", 0), all_vacancies
 
 
-def create_table(results, title):
+def create_table(statistics_on_vacancies, title):
     """Отображение вакансий в виде таблицы"""
     table_data = [[
         "Язык программирования",
@@ -113,12 +113,12 @@ def create_table(results, title):
         "Средняя зарплата"
     ]]
 
-    for key, value in results.items():
+    for language, statistics in statistics_on_vacancies.items():
         table_data.append([
-            key,
-            str(value["vacancies_found"]),
-            str(value["vacancies_processed"]),
-            str(value["average_salary"])
+            language,
+            str(statistics["vacancies_found"]),
+            str(statistics["vacancies_processed"]),
+            str(statistics["average_salary"])
         ])
     table = AsciiTable(table_data)
     table.title = title
