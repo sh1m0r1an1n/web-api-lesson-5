@@ -52,16 +52,16 @@ def get_sj_vacancies(token, language):
     while True:
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
-        data = response.json()
+        response = response.json()
 
-        all_vacancies.extend(data.get("objects", []))
+        all_vacancies.extend(response.get("objects", []))
 
-        if not data.get("more", False):
+        if not response.get("more", False):
             break
 
         params["page"] += 1
 
-    return data.get("total", 0), all_vacancies
+    return response.get("total", 0), all_vacancies
 
 
 def get_hh_vacancies(language):
@@ -88,16 +88,16 @@ def get_hh_vacancies(language):
     while True:
         response = requests.get(url, params=params)
         response.raise_for_status()
-        data = response.json()
+        response = response.json()
 
-        all_vacancies.extend(data.get("items", []))
+        all_vacancies.extend(response.get("items", []))
 
-        if params["page"] >= data.get("pages", 1) - 1:
+        if params["page"] >= response.get("pages", 1) - 1:
             break
 
         params["page"] += 1
 
-    return data.get("found", 0), all_vacancies
+    return response.get("found", 0), all_vacancies
 
 
 def create_table(results, title):
