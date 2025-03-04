@@ -113,15 +113,21 @@ def create_table(results, title):
     return table.table
 
 
+def get_language_statistics(lang, sj_token=None):
+    """Статистика по вакансиям по одному языку на платформе"""
+    if sj_token:
+        count, vacancies = get_sj_vacancies(sj_token, lang)
+    else:
+        count, vacancies = get_hh_vacancies(lang)
+    return count, vacancies
+
+
 def get_statistics_on_vacancies(languages, platform, sj_token=None):
     """Статистика по вакансиям и языкам на платформе"""
     statistics = {}
 
     for lang in languages:
-        if sj_token:
-            count, vacancies = get_sj_vacancies(sj_token, lang)
-        else:
-            count, vacancies = get_hh_vacancies(lang)
+        count, vacancies = get_language_statistics(lang, sj_token)
 
         salaries = []
         for vacancy in vacancies:
