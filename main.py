@@ -23,7 +23,8 @@ def get_a_paycheck_fork(vacancy, platform):
         "sj": get_sj_salary,
     }
     func = platform_funcs.get(platform)
-    return func(vacancy) if func else (None, None)
+    salary_from, salary_to = func(vacancy) if func else (None, None)
+    return salary_from, salary_to
 
 
 def predict_rub_salary(salary_from, salary_to):
@@ -35,6 +36,30 @@ def predict_rub_salary(salary_from, salary_to):
     elif salary_to:
         return int(salary_to * 0.8)
     return None
+
+
+def download_all_pages_of_the_sj_request(url, headers, params):
+    all_vacancies = []
+
+    while True:
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+            response.raise_for_status()
+            response = response.json()
+        except requests.exceptions.RequestException as error:
+            print(f"Ошибка при отправке запроса sj: {error}")
+            continue
+
+        all_vacancies.extend(response.get("objects", []))
+
+        if not response.get("more", False):
+            break
+
+        params["page"] += 1
+
+    count, vacancies = response.get("total", 0), all_vacancies
+
+    return count, vacancies
 
 
 def get_sj_vacancies(language, token):
@@ -55,26 +80,32 @@ def get_sj_vacancies(language, token):
         "count": 100,
         "page": 0,
     }
+    count, vacancies = download_all_pages_of_the_sj_request(url, headers, params)
+    return count, vacancies
 
+
+def download_all_pages_of_the_hh_request(url, params):
     all_vacancies = []
 
     while True:
         try:
-            response = requests.get(url, headers=headers, params=params, timeout=30)
+            response = requests.get(url, params=params, timeout=30)
             response.raise_for_status()
             response = response.json()
         except requests.exceptions.RequestException as error:
-            print(f"Ошибка при отправке запроса sj: {error}")
+            print(f"Ошибка при отправке запроса hh: {error}")
             continue
 
-        all_vacancies.extend(response.get("objects", []))
+        all_vacancies.extend(response.get("items", []))
 
-        if not response.get("more", False):
+        if params["page"] >= response.get("pages", 1) - 1:
             break
 
         params["page"] += 1
 
-    return response.get("total", 0), all_vacancies
+    count, vacancies = response.get("found", 0), all_vacancies
+
+    return count, vacancies
 
 
 def get_hh_vacancies(language):
@@ -95,26 +126,8 @@ def get_hh_vacancies(language):
         "per_page": 100,
         "page": 0,
     }
-
-    all_vacancies = []
-
-    while True:
-        try:
-            response = requests.get(url, params=params, timeout=30)
-            response.raise_for_status()
-            response = response.json()
-        except requests.exceptions.RequestException as error:
-            print(f"Ошибка при отправке запроса hh: {error}")
-            continue
-
-        all_vacancies.extend(response.get("items", []))
-
-        if params["page"] >= response.get("pages", 1) - 1:
-            break
-
-        params["page"] += 1
-
-    return response.get("found", 0), all_vacancies
+    count, vacancies = download_all_pages_of_the_hh_request(url, params)
+    return count, vacancies
 
 
 def create_table(statistics_on_vacancies, title):
@@ -145,7 +158,8 @@ def get_language_statistics(lang, platform, sj_token=None):
         "sj": lambda: get_sj_vacancies(lang, sj_token)
     }
     func = platform_funcs.get(platform)
-    return func() if func else (0, [])
+    count, vacancies = func() if func else (0, [])
+    return count, vacancies
 
 
 def get_statistics_on_vacancies(languages, platform, sj_token=None):
@@ -196,12 +210,12 @@ def main():
 
     hh_msc = get_statistics_on_vacancies(languages=languages, platform="hh")
 
-    sj_msc = {}
     if sj_token:
         sj_msc = get_statistics_on_vacancies(
             languages=languages, platform="sj", sj_token=sj_token
         )
     else:
+        sj_msc = {}
         print("Токен SuperJob не найден. Статистика по SJ пропущена.")
 
     print(create_table(hh_msc, title="HeadHunter Moscow"))
