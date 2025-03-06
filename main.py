@@ -59,9 +59,13 @@ def get_sj_vacancies(language, token):
     all_vacancies = []
 
     while True:
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        response = response.json()
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            response = response.json()
+        except requests.exceptions.RequestException as error:
+            print(f"Ошибка при отправке запроса sj: {error}")
+            continue
 
         all_vacancies.extend(response.get("objects", []))
 
@@ -95,9 +99,13 @@ def get_hh_vacancies(language):
     all_vacancies = []
 
     while True:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        response = response.json()
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            response = response.json()
+        except requests.exceptions.RequestException as error:
+            print(f"Ошибка при отправке запроса hh: {error}")
+            continue
 
         all_vacancies.extend(response.get("items", []))
 
