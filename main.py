@@ -60,7 +60,7 @@ def get_sj_vacancies(language, token):
 
     while True:
         try:
-            response = requests.get(url, headers=headers, params=params, timeout=10)
+            response = requests.get(url, headers=headers, params=params, timeout=30)
             response.raise_for_status()
             response = response.json()
         except requests.exceptions.RequestException as error:
@@ -100,7 +100,7 @@ def get_hh_vacancies(language):
 
     while True:
         try:
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=30)
             response.raise_for_status()
             response = response.json()
         except requests.exceptions.RequestException as error:
