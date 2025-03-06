@@ -3,22 +3,27 @@ from environs import Env
 from terminaltables import AsciiTable
 
 
+def get_hh_salary(vacancy):
+    salary_data = vacancy.get("salary")
+    if not salary_data or salary_data.get("currency") != "RUR":
+        return None, None
+    return salary_data.get("from"), salary_data.get("to")
+
+
+def get_sj_salary(vacancy):
+    if vacancy.get("currency") != "rub":
+        return None, None
+    return vacancy.get("payment_from"), vacancy.get("payment_to")
+
+
 def get_a_paycheck_fork(vacancy, platform):
     """Считывает зарплатную вилку исходя из данных вакансии"""
-    if platform == "hh":
-        salary_data = vacancy.get("salary")
-        if not salary_data or salary_data.get("currency") != "RUR":
-            return None, None
-        salary_from = salary_data.get("from")
-        salary_to = salary_data.get("to")
-    elif platform == "sj":
-        if vacancy["currency"] != "rub":
-            return None, None
-        salary_from = vacancy.get("payment_from")
-        salary_to = vacancy.get("payment_to")
-    else:
-        return None, None
-    return salary_from, salary_to
+    platform_funcs = {
+        "hh": get_hh_salary,
+        "sj": get_sj_salary,
+    }
+    func = platform_funcs.get(platform)
+    return func(vacancy) if func else (None, None)
 
 
 def predict_rub_salary(salary_from, salary_to):
