@@ -37,7 +37,7 @@ def predict_rub_salary(salary_from, salary_to):
     return None
 
 
-def get_sj_vacancies(token, language):
+def get_sj_vacancies(language, token):
     """Получение вакансий с SuperJob"""
     url = f"https://api.superjob.ru/2.0/vacancies/"
     search_text = f'"{language}"' if language != "C" \
@@ -130,13 +130,14 @@ def create_table(statistics_on_vacancies, title):
     return table.table
 
 
-def get_language_statistics(lang, sj_token=None):
+def get_language_statistics(lang, platform, sj_token=None):
     """Статистика по вакансиям по одному языку на платформе"""
-    if sj_token:
-        count, vacancies = get_sj_vacancies(sj_token, lang)
-    else:
-        count, vacancies = get_hh_vacancies(lang)
-    return count, vacancies
+    platform_funcs = {
+        "hh": lambda: get_hh_vacancies(lang),
+        "sj": lambda: get_sj_vacancies(lang, sj_token)
+    }
+    func = platform_funcs.get(platform)
+    return func() if func else (0, [])
 
 
 def get_statistics_on_vacancies(languages, platform, sj_token=None):
@@ -144,7 +145,7 @@ def get_statistics_on_vacancies(languages, platform, sj_token=None):
     statistics = {}
 
     for lang in languages:
-        count, vacancies = get_language_statistics(lang, sj_token)
+        count, vacancies = get_language_statistics(lang, platform, sj_token)
 
         salaries = []
         for vacancy in vacancies:
