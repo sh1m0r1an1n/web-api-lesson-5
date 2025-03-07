@@ -16,17 +16,6 @@ def get_sj_salary(vacancy):
     return vacancy.get("payment_from"), vacancy.get("payment_to")
 
 
-def get_a_paycheck_fork(vacancy, platform):
-    """Считывает зарплатную вилку исходя из данных вакансии"""
-    platform_funcs = {
-        "hh": get_hh_salary,
-        "sj": get_sj_salary,
-    }
-    func = platform_funcs.get(platform)
-    salary_from, salary_to = func(vacancy) if func else (None, None)
-    return salary_from, salary_to
-
-
 def predict_rub_salary(salary_from, salary_to):
     """Рассчитывает зарплату исходя из зарплатной вилки"""
     if salary_from and salary_to:
@@ -151,27 +140,40 @@ def create_table(statistics_on_vacancies, title):
     return table.table
 
 
-def get_language_statistics(lang, platform, sj_token=None):
-    """Статистика по вакансиям по одному языку на платформе"""
-    platform_funcs = {
-        "hh": lambda: get_hh_vacancies(lang),
-        "sj": lambda: get_sj_vacancies(lang, sj_token)
-    }
-    func = platform_funcs.get(platform)
-    count, vacancies = func() if func else (0, [])
-    return count, vacancies
-
-
-def get_statistics_on_vacancies(languages, platform, sj_token=None):
-    """Статистика по вакансиям и языкам на платформе"""
+def get_hh_statistics_on_vacancies(languages):
+    """Статистика по вакансиям и языкам для HeadHunter"""
     statistics = {}
 
     for lang in languages:
-        count, vacancies = get_language_statistics(lang, platform, sj_token)
+        count, vacancies = get_hh_vacancies(lang)
 
         salaries = []
         for vacancy in vacancies:
-            salary_from, salary_to = get_a_paycheck_fork(vacancy, platform)
+            salary_from, salary_to = get_hh_salary(vacancy)
+            salary = predict_rub_salary(salary_from, salary_to)
+            if salary:
+                salaries.append(salary)
+
+        average_salary = int(sum(salaries) / len(salaries)) if salaries else 0
+
+        statistics[lang] = {
+            "vacancies_found": count,
+            "vacancies_processed": len(salaries),
+            "average_salary": average_salary,
+        }
+    return statistics
+
+
+def get_sj_statistics_on_vacancies(languages, sj_token):
+    """Статистика по вакансиям и языкам для SuperJob"""
+    statistics = {}
+
+    for lang in languages:
+        count, vacancies = get_sj_vacancies(lang, sj_token)
+
+        salaries = []
+        for vacancy in vacancies:
+            salary_from, salary_to = get_sj_salary(vacancy)
             salary = predict_rub_salary(salary_from, salary_to)
             if salary:
                 salaries.append(salary)
@@ -208,12 +210,10 @@ def main():
     ]
     sj_token = env.str("SECRET_KEY_SUPERJOB", "")
 
-    hh_msc = get_statistics_on_vacancies(languages=languages, platform="hh")
+    hh_msc = get_hh_statistics_on_vacancies(languages)
 
     if sj_token:
-        sj_msc = get_statistics_on_vacancies(
-            languages=languages, platform="sj", sj_token=sj_token
-        )
+        sj_msc = get_sj_statistics_on_vacancies(languages, sj_token)
     else:
         sj_msc = {}
         print("Токен SuperJob не найден. Статистика по SJ пропущена.")
